@@ -15,6 +15,9 @@ import {
   type Session,
 } from '@shopify/remix-oxygen';
 
+// 1. Import the Rick and Morty client.
+import {createRickAndMortyClient} from './app/lib/createRickAndMortyClient.server';
+
 /**
  * Export a fetch handler in module format.
  */
@@ -33,8 +36,11 @@ export default {
       }
 
       const waitUntil = executionContext.waitUntil.bind(executionContext);
-      const [cache, session] = await Promise.all([
+
+      // 2. Open a cache instance for Rick and Morty.
+      const [cache, rickAndMortyCache, session] = await Promise.all([
         caches.open('hydrogen'),
+        caches.open('r&m'),
         HydrogenSession.init(request, [env.SESSION_SECRET]),
       ]);
 
@@ -50,6 +56,14 @@ export default {
         storeDomain: env.PUBLIC_STORE_DOMAIN,
         storefrontId: env.PUBLIC_STOREFRONT_ID,
         storefrontHeaders: getStorefrontHeaders(request),
+      });
+
+      /**
+       * 3. Create a Rick and Morty client.
+       */
+      const rickAndMorty = createRickAndMortyClient({
+        cache: rickAndMortyCache,
+        waitUntil,
       });
 
       /*
@@ -70,8 +84,17 @@ export default {
       const handleRequest = createRequestHandler({
         build: remixBuild,
         mode: process.env.NODE_ENV,
-        getLoadContext: () => ({session, storefront, cart, env, waitUntil}),
+        getLoadContext: () => ({
+          session,
+          storefront,
+          cart,
+          env,
+          waitUntil,
+          rickAndMorty, // 4. Pass the Rick and Morty client to the action and loader context.
+        }),
       });
+
+      // TODO: don't forget to document adding the rich and morty client to remix.end.dts
 
       const response = await handleRequest(request);
 
