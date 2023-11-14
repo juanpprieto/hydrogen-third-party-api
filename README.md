@@ -7,11 +7,11 @@ we show further details of the character.
 
 ## 1. Create a new third-party client
 
-First we create a cache-aware Rick & Morty API client factory function that will
-help us spin a new client just like we do with the Storefront API client. We make
-use of the Hydrogen utility [createWithCache](https://shopify.dev/docs/api/hydrogen/2023-04/utilities/createwithcache)
+First, we create a cache-aware Rick & Morty API function that will
+let us spin up a new client – just like we do with the Storefront API client. Here we
+use the Hydrogen utility [createWithCache](https://shopify.dev/docs/api/hydrogen/2023-04/utilities/createwithcache)
 to provide the client with a `cache` option that behaves just like that of the
-storefront API client
+storefront API client.
 
 ```ts
 // filename: app/lob/createRickAndMortyClient.sever.ts
@@ -137,6 +137,8 @@ declare module '@shopify/remix-oxygen' {
 
 ### 4. Making third-party API requests
 
+<img width="981" alt="Screenshot 2023-11-13 at 3 51 32 PM" src="https://github.com/juanpprieto/hydrogen-third-party-api/assets/12080141/fe648c70-a979-4862-a173-4c0244543dec">
+
 To render a list of [characters](https://rickandmortyapi.com/documentation/#graphql) from the API
 
 ```ts
@@ -184,6 +186,8 @@ export default function Homepage() {
 ```
 
 ### Render the character page
+
+<img width="981" alt="Screenshot 2023-11-13 at 3 51 42 PM" src="https://github.com/juanpprieto/hydrogen-third-party-api/assets/12080141/c560edaa-1b7e-4198-b63c-a360c103a8ae">
 
 ```ts
 // filename: app/routes/characters.$id.tsx
@@ -333,3 +337,6 @@ npm run build
 ```bash
 npm run dev
 ```
+
+
+
