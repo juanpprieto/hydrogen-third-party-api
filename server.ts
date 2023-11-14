@@ -37,10 +37,8 @@ export default {
 
       const waitUntil = executionContext.waitUntil.bind(executionContext);
 
-      // 2. Open a cache instance for Rick and Morty.
-      const [cache, rickAndMortyCache, session] = await Promise.all([
+      const [cache, session] = await Promise.all([
         caches.open('hydrogen'),
-        caches.open('r&m'),
         HydrogenSession.init(request, [env.SESSION_SECRET]),
       ]);
 
@@ -62,7 +60,7 @@ export default {
        * 3. Create a Rick and Morty client.
        */
       const rickAndMorty = createRickAndMortyClient({
-        cache: rickAndMortyCache,
+        cache,
         waitUntil,
       });
 
