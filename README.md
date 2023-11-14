@@ -263,7 +263,7 @@ export default function Character() {
 }
 ```
 
-### Add the Rick & Morty CDN to the CSM img-src directy
+### Add the Rick & Morty CDN to the CSP `img-src` directive
 
 ```ts
 // filename: entry.server.ts
