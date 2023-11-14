@@ -37,32 +37,36 @@ export function createRickAndMortyClient({
       cache: AllCacheOptions;
     } = {variables: {}, cache: CacheLong()},
   ) {
-    return withCache(['r&m', query], options.cache, async function () {
-      // call to the API
-      const response = await fetch('https://rickandmortyapi.com/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: query.replace('#graphql:rickAndMorty', ''),
-          variables: options.variables,
-        }),
-      });
+    return withCache(
+      ['r&m', query, JSON.stringify(options.variables)],
+      options.cache,
+      async function () {
+        // call to the API
+        const response = await fetch('https://rickandmortyapi.com/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: query.replace('#graphql:rickAndMorty', ''),
+            variables: options.variables,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(
-          `Error fetching from rick and morty api: ${response.statusText}`,
-        );
-      }
+        if (!response.ok) {
+          throw new Error(
+            `Error fetching from rick and morty api: ${response.statusText}`,
+          );
+        }
 
-      const json = (await response.json()) as unknown as {
-        data: any;
-        error: string;
-      };
+        const json = (await response.json()) as unknown as {
+          data: any;
+          error: string;
+        };
 
-      return json.data;
-    });
+        return json.data;
+      },
+    );
   }
 
   return {query};
@@ -89,12 +93,7 @@ export default {
 
   const waitUntil = executionContext.waitUntil.bind(executionContext);
 
-  // 2. Open a cache instance for the rick & morty client
-  const [cache, rickAndMortyCache, session] = await Promise.all([
-    caches.open('hydrogen'),
-    caches.open('r&m'),
-    HydrogenSession.init(request, [env.SESSION_SECRET]),
-  ]);
+  // ... other code
 
   // 3. Create a Rick and Morty client.
   const rickAndMorty = createRickAndMortyClient({
@@ -337,6 +336,3 @@ npm run build
 ```bash
 npm run dev
 ```
-
-
-
