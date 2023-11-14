@@ -48,6 +48,7 @@ export default function Character() {
   );
 }
 
+// NOTE: Awaiting for https://github.com/graphql/graphiql/pull/3411 to be merged
 const CHARACTER_QUERY = `#graphql:rickAndMorty
   query($id: ID!) {
     character(id: $id) {

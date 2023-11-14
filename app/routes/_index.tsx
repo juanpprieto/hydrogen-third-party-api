@@ -9,7 +9,7 @@ export async function loader({context}: LoaderFunctionArgs) {
   return json({characters});
 }
 
-// TODO: Add codegen support
+// TODO: Remove when we add 3P codegen support
 type Character = {
   name: string;
   id: string;
@@ -33,6 +33,7 @@ export default function Homepage() {
   );
 }
 
+// NOTE: Awaiting for https://github.com/graphql/graphiql/pull/3411 to be merged
 const CHARACTERS_QUERY = `#graphql:rickAndMorty
   query {
     characters(page: 1) {
