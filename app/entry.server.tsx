@@ -13,11 +13,13 @@ export default async function handleRequest(
   // 1. Add the Rick & Morty CDN to the list of allowed image sources
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     imgSrc: [
-      'http://localhost:3000',
+      "'self'",
+      'localhost:3000',
+      '*.o2.myshopify.dev',
       'data:',
-      'https://cdn.shopify.com',
-      'https://shopify.com',
-      'https://rickandmortyapi.com/api',
+      'cdn.shopify.com',
+      'shopify.com',
+      'rickandmortyapi.com',
     ],
   });
 
