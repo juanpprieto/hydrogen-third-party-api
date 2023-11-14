@@ -21,6 +21,7 @@
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
     "isbot": "^3.6.6",
+    "p-min-delay": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

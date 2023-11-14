@@ -3,6 +3,7 @@ import {useLoaderData, Link} from '@remix-run/react';
 import {CacheShort} from '@shopify/hydrogen';
 
 export async function loader({context}: LoaderFunctionArgs) {
+  // NOTE: We're using a short cache here to avoid re-fetching the characters
   const {characters} = await context.rickAndMorty.query(CHARACTERS_QUERY, {
     cache: CacheShort(),
   });
@@ -24,7 +25,9 @@ export default function Homepage() {
         {(characters.results || []).map(
           (character: Character, index: number) => (
             <li key={character.name + index}>
-              <Link to={'/characters/' + character.id}>{character.name}</Link>
+              <Link prefetch="intent" to={'/characters/' + character.id}>
+                {character.name}
+              </Link>
             </li>
           ),
         )}
