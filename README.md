@@ -186,7 +186,7 @@ export default function Homepage() {
 
 ### Render the character page and defer the episodes
 
-// TODO: add new screenshot
+<img width="984" alt="Screenshot 2023-11-15 at 10 56 43 AM" src="https://github.com/juanpprieto/hydrogen-third-party-api/assets/12080141/11dc0644-2f55-4ffd-adc3-5dae26c47e09">
 
 ```ts
 // filename: app/routes/characters.$id.tsx
