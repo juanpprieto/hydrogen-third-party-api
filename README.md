@@ -1,4 +1,4 @@
-# Hydrogen Third-Party API Example
+# Hydrogen Third-Party API Example (Deferred)
 
 This example demonstrates how to use a third-party graphql client inside a
 Hydrogen project. We use the [Rick & Morty API](https://rickandmortyapi.com/graphql)
