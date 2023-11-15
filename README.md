@@ -422,7 +422,7 @@ export default async function handleRequest(
 Simply run, `h2 dev` and browse through some of the Rick & Morty clients inside
 your Hydrogen storefront!
 
----;
+---
 
 ## Hydrogen
 
