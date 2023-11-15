@@ -184,9 +184,9 @@ export default function Homepage() {
 }
 ```
 
-### Render the character page
+### Render the character page and defer the episodes
 
-<img width="981" alt="Screenshot 2023-11-13 at 3 51 42 PM" src="https://github.com/juanpprieto/hydrogen-third-party-api/assets/12080141/c560edaa-1b7e-4198-b63c-a360c103a8ae">
+// TODO: add new screenshot
 
 ```ts
 // filename: app/routes/characters.$id.tsx
@@ -194,7 +194,8 @@ import {json, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from '@remix-run/react';
 import {CacheNone} from '@shopify/hydrogen';
 
-// 1. Add the character by id query
+// 1. Add the character and episodes queries. We split them so that we can
+// defer the query for episodes as it is not critical
 const CHARACTER_QUERY = `#graphql:rickAndMorty
   query($id: ID!) {
     character(id: $id) {
@@ -214,24 +215,57 @@ const CHARACTER_QUERY = `#graphql:rickAndMorty
   }
 `;
 
-// 2. Fetch the character profile based on the character id
+const CHARACTER_EPISODES_QUERY = `#graphql:rickAndMorty
+  query ($id: ID!) {
+    character(id: $id) {
+      episode {
+        id
+        name
+        air_date
+        characters {
+          name
+          image
+          status
+        }
+      }
+    }
+  }
+`;
+
+// 2. Await the fetch of the character and defer the episodes
 export async function loader({context, params}: LoaderFunctionArgs) {
-  // Fetch character data
+  // Initialize a promise to fetch episodes data with a delay to simulate
+  // a slow connection or a slow GraphQL server
+  const episodesPromise = pMinDelay(
+    // Notice that we don't await it
+    context.rickAndMorty.query(CHARACTER_EPISODES_QUERY, {
+      variables: {
+        id: params.id,
+      },
+      cache: CacheNone(),
+    }),
+    2000,
+  );
+
+  // Await fetch the "critical" above the fold character data
   const {character} = await context.rickAndMorty.query(CHARACTER_QUERY, {
     variables: {
       id: params.id,
     },
     cache: CacheNone(),
   });
-  return json({character});
+
+  return defer({character, episodesPromise});
 }
 
 // 3. Render the character profile
 export default function Character() {
-  const {character} = useLoaderData<typeof loader>();
+  const {character, episodesPromise} = useLoaderData<typeof loader>();
   return (
     <div>
-      <Link to="/">Back to all characters</Link>
+      <Link prefetch="intent" to="/">
+        Back to all characters
+      </Link>
       <h1>{character.name}</h1>
       <img src={character.image} alt={character.name} />
       <ul>
@@ -258,6 +292,100 @@ export default function Character() {
           {character.location.name}
         </li>
       </ul>
+
+      <hr />
+
+      {/* Await the episodes promise and show a temporary placeholder */}
+      <Suspense fallback={<EpisodesGrid />}>
+        <Await
+          resolve={episodesPromise}
+          errorElement={<p>There was an error while fetching the episodes</p>}
+        >
+          {(data) => {
+            if (!data?.character?.episode) {
+              return <NoEpisodes />;
+            }
+            return (
+              <EpisodesGrid
+                episodes={data.character.episode as Array<Episode>}
+              />
+            );
+          }}
+        </Await>
+      </Suspense>
+    </div>
+  );
+}
+
+// 5. Create the EpisodesGrid and NoEpisodes components
+type Episode = {
+  name: string;
+  air_date: string;
+  id: string;
+  characters: {
+    name: string;
+    image: string;
+    status: string;
+  }[];
+};
+
+function EpisodesGrid({episodes}: {episodes?: Episode[]}) {
+  const placeholderEpisode = {
+    name: 'Loading...',
+    air_date: '',
+    id: '',
+    characters: [{}, {}, {}],
+  };
+
+  let episodeNodes = [];
+
+  if (!episodes?.length) {
+    episodeNodes = new Array(4).fill(placeholderEpisode);
+  } else {
+    episodeNodes = episodes;
+  }
+
+  return (
+    <div>
+      <br />
+      <h2>Episodes</h2>
+      <p>
+        Here we demonstrate Remix's deferred data fetching and streaming. With
+        the help of <code>defer</code>, <code>Suspense</code> and{' '}
+        <code>Await</code> we can render a placeholder while the request for
+        episodes is ready without blocking the rendering process of the page
+      </p>
+      <br />
+      <ul
+        style={{
+          display: 'grid',
+          gridGap: '1rem',
+          gridTemplateColumns: 'repeat(auto-fill, 200px) 20%',
+        }}
+      >
+        {episodeNodes.slice(0, 4).map((episode, index) => (
+          <li
+            style={{
+              padding: '.5rem',
+              border: '1px solid black',
+              minHeight: '100px',
+              backgroundColor: episode.id ? 'white' : '#eee',
+            }}
+            key={episode.id + index}
+          >
+            {episode.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function NoEpisodes() {
+  return (
+    <div>
+      <h2>Episodes</h2>
+      <p>Whoops, no episodes found!</p>
     </div>
   );
 }
