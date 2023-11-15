@@ -5,6 +5,9 @@ Hydrogen project. We use the [Rick & Morty API](https://rickandmortyapi.com/grap
 to fetch some characters in the homepage and then link to a character page where
 we show further details of the character.
 
+> [!TIP]
+> Another version including `deferred data-loading` can be found on this [branch](https://github.com/juanpprieto/hydrogen-third-party-api/tree/deferred-data-loading)
+
 ## 1. Create a new third-party client
 
 First, we create a cache-aware Rick & Morty API function that will
