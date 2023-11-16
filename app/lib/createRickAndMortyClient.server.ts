@@ -12,7 +12,7 @@ export function createRickAndMortyClient({
 }) {
   const withCache = createWithCache({cache, waitUntil});
 
-  async function query(
+  async function query<T>(
     query: `#graphql:rickAndMorty${string}`,
     options: {
       variables?: object;
@@ -46,7 +46,7 @@ export function createRickAndMortyClient({
           error: string;
         };
 
-        return json.data;
+        return json.data as T;
       },
     );
   }

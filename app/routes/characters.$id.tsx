@@ -8,28 +8,48 @@ export async function loader({context, params}: LoaderFunctionArgs) {
   // Initialize a promise to fetch episodes data with a delay to simulate
   // a slow connection or a slow GraphQL server
   const episodesPromise = pMinDelay(
-    context.rickAndMorty.query(CHARACTER_EPISODES_QUERY, {
+    context.rickAndMorty.query<{character: {episode: Episode[]}}>(
+      DEFERRED_CHARACTER_EPISODES_QUERY,
+      {
+        variables: {
+          id: params.id,
+        },
+        cache: CacheNone(),
+      },
+    ),
+    2000,
+  );
+
+  // Await fetch the "critical" above the fold character and locations data
+  const characterPromise = context.rickAndMorty.query<{character: Character}>(
+    CHARACTER_QUERY,
+    {
       variables: {
         id: params.id,
       },
       cache: CacheNone(),
-    }),
-    2000,
+    },
   );
 
-  // Await fetch the "critical" above the fold character data
-  const {character} = await context.rickAndMorty.query(CHARACTER_QUERY, {
-    variables: {
-      id: params.id,
-    },
+  const locationsPromise = context.rickAndMorty.query<{
+    locations: {results: Location[]};
+  }>(CHARACTER_LOCATIONS_QUERY, {
+    variables: {},
     cache: CacheNone(),
   });
 
-  return defer({character, episodesPromise});
+  // fetch character and locations data in parallel
+  const [{character}, {locations}] = await Promise.all([
+    characterPromise,
+    locationsPromise,
+  ]);
+
+  return defer({character, locations, episodesPromise});
 }
 
 export default function Character() {
-  const {character, episodesPromise} = useLoaderData<typeof loader>();
+  const {character, locations, episodesPromise} =
+    useLoaderData<typeof loader>();
   return (
     <div>
       <Link prefetch="intent" to="/">
@@ -62,6 +82,8 @@ export default function Character() {
         </li>
       </ul>
 
+      <Locations locations={locations.results} />
+
       <hr />
 
       <Suspense fallback={<EpisodesGrid />}>
@@ -84,6 +106,35 @@ export default function Character() {
     </div>
   );
 }
+
+function Locations({locations}: {locations: Location[]}) {
+  return (
+    <section>
+      <h2>Locations</h2>
+      <div
+        style={{
+          display: 'grid',
+          gridGap: '1rem',
+          gridTemplateColumns: 'repeat(auto-fill, 200px) 20%',
+        }}
+      >
+        {locations.slice(0, 6).map((location) => (
+          <div key={location.name}>
+            <p>{location.name}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+type Location = {
+  name: string;
+  residents: {
+    name: string;
+    image: string;
+  }[];
+};
 
 type Episode = {
   name: string;
@@ -157,9 +208,24 @@ export function NoEpisodes() {
   );
 }
 
+type Character = {
+  name: string;
+  id: string;
+  gender: string;
+  image: string;
+  type: string;
+  species: string;
+  origin: {
+    name: string;
+  };
+  location: {
+    name: string;
+  };
+};
+
 // NOTE: Awaiting for https://github.com/graphql/graphiql/pull/3411 to be merged
 const CHARACTER_QUERY = `#graphql:rickAndMorty
-  query($id: ID!) {
+  query characterQuery($id: ID!) {
     character(id: $id) {
       name
       id
@@ -177,8 +243,22 @@ const CHARACTER_QUERY = `#graphql:rickAndMorty
   }
 `;
 
-const CHARACTER_EPISODES_QUERY = `#graphql:rickAndMorty
-  query ($id: ID!) { 
+const CHARACTER_LOCATIONS_QUERY = `#graphql:rickAndMorty
+  query locationsQuery { 
+    locations(page: 1) {
+      results {
+        name
+        residents {
+          name
+          image
+        }
+      }
+    }
+  }
+`;
+
+const DEFERRED_CHARACTER_EPISODES_QUERY = `#graphql:rickAndMorty
+  query deferredEpisodesQuery($id: ID!) { 
     character(id: $id) {
       episode {
         id
